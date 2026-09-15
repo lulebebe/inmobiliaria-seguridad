@@ -29,4 +29,4 @@ EXPOSE 8080
 
 # start the server
 #CMD ["uvicorn", "main_chatwoot:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers"]
-CMD ["sh", "-c", "uvicorn main_chatwoot_ia_off.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "uvicorn main_chatwoot_ia_off:app --host 0.0.0.0 --port ${PORT}"]
