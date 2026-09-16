@@ -158,6 +158,8 @@ class HybridSafetyService:
             messages=messages,
             model=model,
             temperature=0.0,
+            timeout=15,
+            max_retries=0,
         )
 
         duracion = time.perf_counter() - inicio
