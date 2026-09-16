@@ -182,7 +182,6 @@ async def chatwoot_webhook(request: Request):
     # Debug
     print(f"\n{'='*60}")
     print(f"📩 Webhook recibido: {event}")
-    print(f"   Conversación: {conversation_id} | Contacto: {contact_id}")
     print(f"   Tipo: {message_type}")
     print(f"   Etiquetas: {labels}")
 
@@ -196,6 +195,7 @@ async def chatwoot_webhook(request: Request):
     sender = data.get('sender') or {}
     sender_type = sender.get('type', '')
     contact_id = sender.get('id')  # ID del contacto para el tag "ia-off"
+    print(f"   Conversación: {conversation_id} | Contacto: {contact_id}")
 
     # No responder si el contacto/conversación tiene el tag "ia-off"
     if TAG_IA_OFF in labels:
