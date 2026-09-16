@@ -14,6 +14,7 @@ import requests
 from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI, Request
 import uvicorn
+import threading
 
 # Mostrar logs INFO de guardrails en consola
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -129,26 +130,79 @@ def conversation_id_to_uuid(conversation_id: int) -> str:
 def ejecutar_agente_y_responder(
     conversation_id: int,
     contact_id: int,
-    mensaje: str,
 ) -> str:
     """
-    Ejecuta el agente para un mensaje (o la concatenación de varios) y envía
-    la respuesta a Chatwoot. Es síncrono: se ejecuta en un hilo aparte para
-    no bloquear el event loop de FastAPI.
+    Ejecuta el agente y envía mensajes de progreso cada 5 segundos
+    mientras se procesa la solicitud.
     """
     session_id = conversation_id_to_uuid(conversation_id)
 
-    # Crear la tool de handoff con contact_id y conversation_id inyectados
     tools_extra = []
+
     if contact_id and conversation_id:
-        tools_extra.append(crear_tool_transferir_humano(contact_id, conversation_id))
+        tools_extra.append(
+            crear_tool_transferir_humano(contact_id, conversation_id)
+        )
 
-    respuesta = chat_con_agente(mensaje, session_id, tools_extra=tools_extra)
-    print(f"   ✅ Respuesta generada ({len(respuesta)} chars)")
+    mensajes_progreso = [
+        "Gracias por su paciencia. Estamos realizando las validaciones de seguridad de su solicitud.",
+        "Gracias por su paciencia. El agente de IA continúa procesando su solicitud.",
+        "Gracias por su paciencia. Estamos completando la evaluación y observabilidad de la respuesta.",
+    ]
 
-    send_chatwoot_message(conversation_id, respuesta)
-    return respuesta
+    stop_progress = threading.Event()
 
+    def enviar_progreso():
+        indice = 0
+
+        while not stop_progress.wait(5):
+            mensaje_progreso = mensajes_progreso[
+                indice % len(mensajes_progreso)
+            ]
+
+            print(
+                f"   [PROGRESO] Enviando mensaje de estado "
+                f"(conv={conversation_id})"
+            )
+
+            send_chatwoot_message(
+                conversation_id,
+                mensaje_progreso,
+            )
+
+            indice += 1
+
+    progress_thread = threading.Thread(
+        target=enviar_progreso,
+        daemon=True,
+    )
+
+    progress_thread.start()
+
+    respuesta = None
+
+    try:
+        respuesta = chat_con_agente(
+            mensaje,
+            session_id,
+            tools_extra=tools_extra,
+        )
+
+        print(
+            f"   ✅ Respuesta generada ({len(respuesta)} chars)"
+        )
+
+        return respuesta
+
+    finally:
+        stop_progress.set()
+        progress_thread.join(timeout=1)
+
+        if respuesta:
+            send_chatwoot_message(
+                conversation_id,
+                respuesta,
+            )
 
 # ============================================
 # FASTAPI APP
