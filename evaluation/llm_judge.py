@@ -31,7 +31,7 @@ Uso desde el agente:
 """
 
 import json
-
+import time
 from langchain.chat_models import init_chat_model
 from langfuse import get_client
 
@@ -145,7 +145,21 @@ def evaluar_con_llm_judge(
 
         # Llamar al LLM juez SIN callbacks de Langfuse: esta llamada interna
         # no debe aparecer en el trace del usuario para no generar ruido en el dashboard
-        eval_response = _chat_judge.invoke([{"role": "user", "content": prompt_eval}])
+        # eval_response = _chat_judge.invoke([{"role": "user", "content": prompt_eval}])
+        inicio_judge = time.perf_counter()
+
+        print("   [PERFORMANCE] Iniciando LLM Judge GPT-4.1...")
+
+        eval_response = _chat_judge.invoke(
+            [{"role": "user", "content": prompt_eval}]
+        )
+
+        duracion_judge = time.perf_counter() - inicio_judge
+
+        print(
+            f"   [PERFORMANCE] LLM Judge GPT-4.1 finalizado en "
+            f"{duracion_judge:.2f} segundos"
+        )
 
         # Parsear el JSON devuelto por el juez y sanear todos los valores entre 0 y 1
         eval_data        = json.loads(eval_response.content.strip())

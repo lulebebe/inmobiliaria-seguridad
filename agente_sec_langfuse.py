@@ -13,6 +13,7 @@ import sys
 import uuid
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import time
 
 from dotenv import load_dotenv, find_dotenv
 
@@ -218,10 +219,21 @@ def chat_con_agente(
         # LANGFUSE ▶ config={"callbacks": [langfuse_handler]} activa el tracing de TODO el
         #             grafo del agente: llamadas al LLM, ejecución de tools y respuesta final
         #             (tokens, costo y latencia de cada paso).
+        inicio_agente = time.perf_counter()
+
+        print("   [PERFORMANCE] Iniciando agente GPT-4.1...")     
         resultado = agente.invoke(
             {"messages": input_messages},
             config={"callbacks": [langfuse_handler]},
         )
+
+        duracion_agente = time.perf_counter() - inicio_agente
+
+        print(
+            f"   [PERFORMANCE] Agente GPT-4.1 finalizado en "
+            f"{duracion_agente:.2f} segundos"
+        )
+
         # create_agent devuelve el estado final; el último mensaje es la respuesta.
         respuesta_final = resultado["messages"][-1].content
 
