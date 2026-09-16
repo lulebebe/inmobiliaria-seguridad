@@ -130,6 +130,7 @@ def conversation_id_to_uuid(conversation_id: int) -> str:
 def ejecutar_agente_y_responder(
     conversation_id: int,
     contact_id: int,
+    mensaje: str,
 ) -> str:
     """
     Ejecuta el agente y envía mensajes de progreso cada 5 segundos
