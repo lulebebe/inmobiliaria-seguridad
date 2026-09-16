@@ -115,7 +115,11 @@ class HybridSafetyService:
             self.groq_api_key = os.getenv("GROQ_API_KEY")
 
             if self.groq_api_key:
-                self.groq_client = Groq(api_key=self.groq_api_key)
+                self.groq_client = Groq(
+                    api_key=self.groq_api_key,
+                    max_retries=0,
+                )
+
                 logger.info("[SAFETY] ✅ Groq client inicializado")
                 logger.info(
                     f"[SAFETY] Groq SDK versión: {groq.__version__}"
@@ -159,7 +163,6 @@ class HybridSafetyService:
             model=model,
             temperature=0.0,
             timeout=15,
-            max_retries=0,
         )
 
         duracion = time.perf_counter() - inicio
