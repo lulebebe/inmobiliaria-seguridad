@@ -29,6 +29,7 @@ import os
 import re
 import logging
 from typing import Tuple, List, Optional
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -140,11 +141,20 @@ class HybridSafetyService:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": message})
 
+        inicio = time.perf_counter()
+
         chat_completion = self.groq_client.chat.completions.create(
             messages=messages,
             model=model,
             temperature=0.0,
         )
+
+        duracion = time.perf_counter() - inicio
+
+        logger.info(
+            f"[SAFETY] Groq {model} respondió en {duracion:.2f} segundos"
+        )
+
         return chat_completion.choices[0].message.content.strip()
 
     # ----------------------------------------------------------
