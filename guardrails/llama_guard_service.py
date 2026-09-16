@@ -111,13 +111,24 @@ class HybridSafetyService:
 
         try:
             from groq import Groq
+            import groq
             self.groq_api_key = os.getenv("GROQ_API_KEY")
 
             if self.groq_api_key:
                 self.groq_client = Groq(api_key=self.groq_api_key)
                 logger.info("[SAFETY] ✅ Groq client inicializado")
+                logger.info(
+                    f"[SAFETY] Groq SDK versión: {groq.__version__}"
+                )
+                logger.info(
+                    f"[SAFETY] Groq timeout configurado: "
+                    f"{self.groq_client._client.timeout}"
+                )
+
             else:
-                logger.warning("[SAFETY] ⚠️ GROQ_API_KEY no encontrada en el entorno")
+                logger.warning(
+                    "[SAFETY] ⚠️ GROQ_API_KEY no encontrada en el entorno"
+                )
 
         except ImportError:
             logger.error("[SAFETY] ❌ Groq SDK no instalado. Ejecuta: pip install groq")
