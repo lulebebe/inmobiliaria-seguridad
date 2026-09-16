@@ -118,6 +118,7 @@ class HybridSafetyService:
                 self.groq_client = Groq(
                     api_key=self.groq_api_key,
                     max_retries=0,
+                    timeout=20,
                 )
 
                 logger.info("[SAFETY] ✅ Groq client inicializado")
@@ -158,12 +159,15 @@ class HybridSafetyService:
 
         inicio = time.perf_counter()
 
+        logger.info(
+            f"[SAFETY] Iniciando llamada Groq: {model} | timeout cliente=20s"
+        )
+
         chat_completion = self.groq_client.chat.completions.create(
             messages=messages,
             model=model,
             temperature=0.0,
-            timeout=15,
-        )
+         )
 
         duracion = time.perf_counter() - inicio
 
